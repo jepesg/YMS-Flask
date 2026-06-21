@@ -170,6 +170,7 @@ input[type="text"], input[type="password"], input[type="tel"], select {
     overflow-x: auto;
     border: 1px solid #e2e8f0;
     border-radius: 8px;
+    -webkit-overflow-scrolling: touch; /* Rolagem suave em dispositivos iOS */
 }
 
 .table-tech {
@@ -177,6 +178,7 @@ input[type="text"], input[type="password"], input[type="tel"], select {
     border-collapse: collapse;
     text-align: left;
     font-size: 14px;
+    white-space: nowrap; /* Evita quebras esquisitas de colunas no mobile */
 }
 
 .table-tech th {
@@ -211,6 +213,29 @@ input[type="text"], input[type="password"], input[type="tel"], select {
 .badge-doca { background: #dcfce7; color: #15803d; }
 .badge-concluido { background: #e2e8f0; color: #475569; }
 
+/* Injeções automáticas de suporte aos seletores dinâmicos do backend */
+.badge-status.no-pátio { background: #fef3c7; color: #d97706; }
+.badge-status.em-doca { background: #dcfce7; color: #15803d; }
+.badge-status.concluído { background: #e2e8f0; color: #475569; }
+
+/* Inline Forms dentro da tabela */
+.table-tech form {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+.table-tech form select {
+    padding: 6px 10px;
+    width: auto;
+}
+.table-tech form button {
+    padding: 6px 12px;
+    border-radius: 4px;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+}
+
 /* ==========================================================================
    SISTEMA DE LOGIN ISOLADO
    ========================================================================== */
@@ -220,6 +245,7 @@ input[type="text"], input[type="password"], input[type="tel"], select {
     align-items: center;
     justify-content: center;
     height: 100vh;
+    padding: 15px; /* Evita que a box cole na borda em celulares pequenos */
 }
 
 .login-box {
@@ -232,11 +258,12 @@ input[type="text"], input[type="password"], input[type="tel"], select {
     border: 1px solid #e2e8f0;
     text-align: center;
 }
+
 /* ==========================================================================
    NOVA MARCA AMARRONZADA (NÃO CONFUNDE COM O MENU)
    ========================================================================== */
 .logo-brand {
-    color: #8B5A2B !important; /* Tom amarronzado premium corporativo */
+    color: #8B5A2B !important; 
     font-size: 26px;
     width: 50px;
     height: 50px;
@@ -244,7 +271,7 @@ input[type="text"], input[type="password"], input[type="tel"], select {
     align-items: center;
     justify-content: center;
     border-radius: 8px;
-    background-color: rgba(139, 90, 43, 0.12); /* Fundo sutil combinando */
+    background-color: rgba(139, 90, 43, 0.12); 
     margin-bottom: 10px;
 }
 
@@ -257,7 +284,7 @@ input[type="text"], input[type="password"], input[type="tel"], select {
     left: 0;
     width: 100vw;
     height: 100vh;
-    background-color: rgba(30, 41, 59, 0.6); /* Backdrop escuro blur sutil */
+    background-color: rgba(30, 41, 59, 0.6); 
     backdrop-filter: blur(4px);
     display: flex;
     align-items: center;
@@ -335,8 +362,6 @@ input[type="date"] {
 /* ==========================================================================
    ANIMAÇÕES DE CARGA E DESCARGA EM TEMPO REAL (PORTYARD YMS)
    ========================================================================== */
-
-/* Caixa de contenção dos ícones animados */
 .wrapper-animacao-yms {
     position: relative;
     width: 70px;
@@ -350,7 +375,6 @@ input[type="date"] {
     overflow: hidden;
 }
 
-/* Caminhão base estático/vibrando sutilmente na doca */
 .truck-base-anim {
     font-size: 18px;
     color: #303841;
@@ -360,7 +384,6 @@ input[type="date"] {
     animation: vibrarDoca 0.4s infinite alternate;
 }
 
-/* ANIMAÇÃO 1: Caixa Entrando no Caminhão (Carregando) */
 .box-carga-anim {
     font-size: 10px;
     color: #2ecc71;
@@ -369,7 +392,6 @@ input[type="date"] {
     animation: fluxoCarregar 1.6s infinite linear;
 }
 
-/* ANIMAÇÃO 2: Caixa Saindo do Caminhão (Descarregando) */
 .box-descarga-anim {
     font-size: 10px;
     color: #e67e22;
@@ -381,49 +403,146 @@ input[type="date"] {
 /* ==========================================================================
    KEYFRAMES MATRICIAIS (EFEITOS DE MOVIMENTO)
    ========================================================================== */
-
-/* Vibração mecânica do motor do caminhão estacionado */
 @keyframes vibrarDoca {
     from { transform: translateY(0); }
     to { transform: translateY(-1px); }
 }
 
-/* Fluxo da esquerda para a direita: a caixa entra na caçamba e some */
 @keyframes fluxoCarregar {
-    0% {
-        opacity: 0;
-        transform: translateX(35px) scale(0.6);
-    }
-    30% {
-        opacity: 1;
-        transform: translateX(20px) scale(1);
-    }
-    80% {
-        opacity: 1;
-        transform: translateX(-2px) scale(1);
-    }
-    100% {
-        opacity: 0;
-        transform: translateX(-10px) scale(0.7);
+    0% { opacity: 0; transform: translateX(35px) scale(0.6); }
+    30% { opacity: 1; transform: translateX(20px) scale(1); }
+    80% { opacity: 1; transform: translateX(-2px) scale(1); }
+    100% { opacity: 0; transform: translateX(-10px) scale(0.7); }
+}
+
+@keyframes fluxoDescarregar {
+    0% { opacity: 0; transform: translateX(-10px) scale(0.7); }
+    20% { opacity: 1; transform: translateX(-2px) scale(1); }
+    75% { opacity: 1; transform: translateX(20px) scale(1); }
+    100% { opacity: 0; transform: translateX(35px) scale(0.6); }
+}
+
+/* ==========================================================================
+   MÁGICA COMPLETA DE RESPONSIVIDADE (SEM ALTERAR O HTML ORIGINAL)
+   ========================================================================== */
+
+/* Prevenção global contra o zoom automático chato do Safari/Android Chrome */
+input, select, textarea {
+    font-size: 16px !important;
+}
+
+@media (max-width: 992px) {
+    /* Intercepta os estilos em linha baseados em CSS Grid puro sem classes */
+    div[style*="display: grid"], 
+    div[style*="display:grid"] {
+        grid-template-columns: 1fr !important;
+        gap: 12px !important;
     }
 }
 
-/* Fluxo da direita para a esquerda: a caixa surge de dentro do caminhão e sai */
-@keyframes fluxoDescarregar {
-    0% {
-        opacity: 0;
-        transform: translateX(-10px) scale(0.7);
+@media (max-width: 768px) {
+    /* 1. Mapeamento da Área de Conteúdo principal */
+    .content-area {
+        margin-left: 0 !important; /* Libera o espaço ocupado pela sidebar */
+        padding: 15px !important;
+        padding-bottom: 80px !important; /* Evita que a barra inferior cubra botões da aplicação */
     }
-    20% {
-        opacity: 1;
-        transform: translateX(-2px) scale(1);
+
+    /* 2. Transformação da Sidebar lateral em Barra Inferior Mobile */
+    .sidebar {
+        width: 100% !important;
+        height: 60px !important;
+        position: fixed !important;
+        top: auto !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        flex-direction: row !important;
+        justify-content: space-around !important;
+        padding-top: 0 !important;
+        gap: 0 !important;
+        box-shadow: 0 -3px 10px rgba(0,0,0,0.1);
     }
-    75% {
-        opacity: 1;
-        transform: translateX(20px) scale(1);
+
+    .sidebar a, .sidebar .logo {
+        width: 45px !important;
+        height: 45px !important;
+        font-size: 20px !important;
     }
-    100% {
-        opacity: 0;
-        transform: translateX(35px) scale(0.6);
+    
+    .logo-brand {
+        margin-bottom: 0 !important;
+    }
+
+    /* 3. Ajuste do Cabeçalho e Painéis */
+    .header-painel {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 15px !important;
+    }
+
+    .header-painel h1 {
+        font-size: 22px !important;
+    }
+
+    .grupo-botoes {
+        width: 100% !important;
+        flex-direction: column !important;
+        gap: 10px !important;
+    }
+
+    .grupo-botoes a, 
+    .grupo-botoes button {
+        width: 100% !important;
+        justify-content: center !important;
+    }
+
+    /* 4. Ajuste dos Filtros do Dashboard */
+    .form-filtro {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 12px !important;
+        padding: 15px !important;
+    }
+
+    .form-filtro input,
+    .form-filtro select,
+    .form-filtro button {
+        width: 100% !important;
+    }
+
+    /* 5. Ajuste de Cartões de Formulários (Registro de Entrada / Docas) */
+    .card-container {
+        padding: 20px !important;
+        margin: 15px auto !important;
+        width: 100% !important;
+    }
+
+    /* Intercepta botões inferiores fixados com flexbox puro em linha */
+    div[style*="display: flex"][style*="justify-content: flex-end"] {
+        flex-direction: column !important;
+        gap: 12px !important;
+    }
+
+    div[style*="display: flex"][style*="justify-content: flex-end"] a,
+    div[style*="display: flex"][style*="justify-content: flex-end"] button {
+        width: 100% !important;
+        justify-content: center !important;
+        padding: 12px !important;
+    }
+
+    /* 6. Adequação da tabela interna */
+    .table-tech form {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        width: 100% !important;
+    }
+    .table-tech form select,
+    .table-tech form button {
+        width: 100% !important;
+    }
+
+    /* Ajuste da tela de Login em smartphones */
+    .login-box {
+        padding: 25px 20px !important;
     }
 }
