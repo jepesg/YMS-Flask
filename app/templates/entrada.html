@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="card-container">
+    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 5px;">
+        <i class="fas fa-truck-ramp-box" style="font-size: 24px; color: var(--cor-icones-nav);"></i>
+        <h2 class="card-title">Registro de Entrada</h2>
+    </div>
+    <p style="color: var(--texto-mutated); font-size: 14px; margin: 0 0 25px 0;">Efetue o cadastro para controle de fluxo e acesso ao pátio.</p>
+
+    <form method="POST" enctype="multipart/form-data">
+        
+        <div class="form-grupo">
+            <label>Tipo de Operação:</label>
+            <div class="radio-container">
+                <label style="display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 500;">
+                    <input type="radio" name="tipo_entrada" value="veiculo" checked onclick="alternarCampos('veiculo')"> Logística (Veículo)
+                </label>
+                <label style="display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 500;">
+                    <input type="radio" name="tipo_entrada" value="visitante" onclick="alternarCampos('visitante')"> Pedestre/Visitante
+                </label>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+            <div class="form-grupo">
+                <label>Nome do Condutor / Visitante:</label>
+                <input type="text" name="motorista" placeholder="Nome completo" required>
+            </div>
+            <div class="form-grupo">
+                <label>CPF:</label>
+                <input type="text" name="motorista_cpf" placeholder="000.000.000-00" required>
+            </div>
+        </div>
+
+        <div class="form-grupo">
+            <label>Telefone de Contato:</label>
+            <input type="tel" name="motorista_telefone" placeholder="(00) 00000-0000">
+        </div>
+
+        <div class="form-grupo" style="margin: 20px 0;">
+            <label><i class="fas fa-camera"></i> Imagem do Condutor:</label>
+            <input type="file" name="foto" accept="image/*" style="padding: 10px; background: #f8fafc; border: 1px dashed var(--borda); border-radius: 6px; width: 100%;">
+        </div>
+
+        <div id="secao-veiculo">
+            <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 25px 0;">
+            
+            <div class="form-grupo">
+                <label>Placa do Veículo:</label>
+                <input type="text" name="placa" placeholder="ABC1234">
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div class="form-grupo">
+                    <label>Modelo do Veículo:</label>
+                    <input type="text" name="modelo" placeholder="Caminhão ou Carro">
+                </div>
+                <div class="form-grupo">
+                    <label>Transportadora / Empresa:</label>
+                    <input type="text" name="transportadora" placeholder="Nome da Empresa">
+                </div>
+            </div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 30px;">
+            <a href="/dashboard" style="background: #cbd5e1; color: #303841; text-decoration: none; padding: 10px 20px; border-radius: 6px; font-weight: 600; font-size: 14px; display: inline-flex; align-items: center;">Voltar</a>
+            <button type="submit" class="btn-custom-tech"><i class="fas fa-check"></i> Concluir Registro</button>
+        </div>
+    </form>
+</div>
+<script src="{{ url_for('static', filename='assets/js/entrada.js') }}">  </script>
+{% endblock %}

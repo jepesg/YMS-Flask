@@ -1,0 +1,181 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="dash-container">
+    
+    <div class="header-painel">
+        <div>
+            <h1>Painel de Controle de Acesso e Pátio</h1>
+            <p style="color: var(--texto-mutado); margin: 5px 0 0 0;">Gerencie o fluxo de veículos, motoristas e pedestres em tempo real.</p>
+        </div>
+        <div class="grupo-botoes">
+            <a href="/dashboard" class="btn-custom-tech" style="background-color: #2ecc71 !important;">
+                <i class="fas fa-sync-alt"></i> Atualizar Painel
+            </a>
+            <a href="/entrada" class="btn-custom-tech" style="background-color: #0084ff !important;">
+                <i class="fas fa-plus"></i> Nova Entrada
+            </a>
+            <button class="btn-custom-tech" style="background-color: #1f804b !important;" onclick="abrirModalExportar()">
+                <i class="fas fa-file-excel"></i> Exportar Excel
+            </button>
+        </div>
+    </div>
+
+    <form method="GET" action="/dashboard" class="form-filtro">
+        <div style="flex: 2; display: flex; flex-direction: column; gap: 6px;">
+            <label style="font-size: 13px; font-weight: 600;">Pesquisar Motorista, Placa, CPF ou Empresa:</label>
+            <input type="text" name="busca" value="{{ busca_atual if busca_atual else '' }}" placeholder="Digite um termo para buscar...">
+        </div>
+        <div style="flex: 1; display: flex; flex-direction: column; gap: 6px;">
+            <label style="font-size: 13px; font-weight: 600;">Filtrar por Status:</label>
+            <select name="status_filtro">
+                <option value="">Todos Ativos no Pátio</option>
+                <option value="No Pátio" {% if status_atual == 'No Pátio' %}selected{% endif %}>No Pátio</option>
+                <option value="Em Doca" {% if status_atual == 'Em Doca' %}selected{% endif %}>Apenas Em Doca</option>
+                <option value="Concluído" {% if status_atual == 'Concluído' %}selected{% endif %}>Concluídos / Histórico</option>
+            </select>
+        </div>
+        <div style="display: flex; gap: 8px;">
+            <button type="submit" class="btn-custom-tech"><i class="fas fa-search"></i> Buscar</button>
+            <a href="/dashboard" class="btn-custom-tech" style="background-color: #cbd5e1 !important; color: #303841 !important;">Limpar</a>
+        </div>
+    </form>
+
+    <div class="responsive-table-container">
+        <table class="table-tech">
+            <thead>
+                <tr>
+                    <th style="width: 70px;">Foto</th>
+                    <th>Nome / Motorista</th>
+                    <th>Placa</th>
+                    <th>Modelo / Empresa</th>
+                    <th>Entrada</th>
+                    <th>Status</th>
+                    <th style="text-align: center; width: 240px;">Ações de Fluxo</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if movimentacoes %}
+                    {% for mov in movimentacoes %}
+                        <tr class="table-row-tech">
+                            <td>
+                                {% if mov.veiculo.foto_caminho %}
+                                    <img src="{{ url_for('static', filename=mov.veiculo.foto_caminho) }}" style="width: 45px; height: 45px; border-radius: 50%; object-fit: cover;">
+                                {% else %}
+                                    <div style="width: 45px; height: 45px; border-radius: 50%; background: #e2e8f0; display: flex; align-items: center; justify-content: center; color: #94a3b8;"><i class="fas fa-user"></i></div>
+                                {% endif %}
+                            </td>
+                            
+                            <td><strong>{{ mov.veiculo.motorista_nome }}</strong><br><small>{{ mov.veiculo.motorista_cpf }}</small></td>
+                            <td style="font-family: monospace; font-size: 15px;">{{ mov.veiculo.placa if mov.veiculo.placa else '-' }}</td>
+                            <td>{{ mov.veiculo.modelo if mov.veiculo.modelo else 'Pedestre' }}<br><small>{{ mov.veiculo.transportadora if mov.veiculo.transportadora else '' }}</small></td>
+                            <td>{{ mov.data_hora_entrada.strftime('%d/%m/%Y %H:%M') }}</td>
+                            
+                            <td>
+                                {% if mov.status_atual == 'No Pátio' %}
+                                    <span class="badge-status badge-patio">No Pátio</span>
+                                {% elif mov.status_atual == 'Em Doca' %}
+                                    <span class="badge-status badge-doca">Em Doca ({{ mov.doca.numero }})</span>
+                                {% else %}
+                                    <span class="badge-status badge-concluido">Concluído</span>
+                                {% endif %}
+                            </td>
+                            
+                            <td style="text-align: center; vertical-align: middle;">
+                                {% if mov.status_atual == 'No Pátio' %}
+                                    <form action="/atualizar_status/{{ mov.id }}" method="POST" style="display: flex; flex-direction: column; gap: 6px; align-items: center; width: 100%; margin: 0;">
+                                        <div style="display: flex; gap: 4px; width: 100%;">
+                                            <select name="doca_id" required style="padding: 6px; font-size: 12px; flex: 1; height: 32px;">
+                                                <option value="" disabled selected>Doca</option>
+                                                {% for doca in docas %}
+                                                    {% if doca.status == 'Livre' %}
+                                                        <option value="{{ doca.id }}">{{ doca.numero }}</option>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </select>
+                                            <select name="tipo_operacao" required style="padding: 6px; font-size: 12px; flex: 1; height: 32px;">
+                                                <option value="Carga" selected>Carga</option>
+                                                <option value="Descarga">Descarga</option>
+                                            </select>
+                                        </div>
+                                        <button type="submit" class="btn-custom-tech" style="padding: 6px 12px; font-size: 12px; width: 100%; justify-content: center; background-color: var(--bg-navbar) !important; height: 32px;">
+                                            <i class="fas fa-truck-arrow-right"></i> Autorizar Doca
+                                        </button>
+                                    </form>
+
+                                {% elif mov.status_atual == 'Em Doca' %}
+                                    <div style="margin-bottom: 8px; display: flex; flex-direction: column; align-items: center; gap: 4px;">
+                                        {% if mov.tipo_operacao == 'Descarga' %}
+                                            <div class="wrapper-animacao-yms">
+                                                <i class="fas fa-truck truck-base-anim"></i>
+                                                <i class="fas fa-box-open box-descarga-anim"></i>
+                                            </div>
+                                            <span style="font-size: 11px; font-weight: 700; color: #e67e22; text-transform: uppercase; letter-spacing: 0.5px;">Descarregando...</span>
+                                        {% else %}
+                                            <div class="wrapper-animacao-yms">
+                                                <i class="fas fa-truck truck-base-anim"></i>
+                                                <i class="fas fa-box box-carga-anim"></i>
+                                            </div>
+                                            <span style="font-size: 11px; font-weight: 700; color: #2ecc71; text-transform: uppercase; letter-spacing: 0.5px;">Carregando...</span>
+                                        {% endif %}
+                                    </div>
+
+                                    <form action="/registrar_saida/{{ mov.id }}" method="POST" style="margin: 0; width: 100%;">
+                                        <button type="submit" class="btn-custom-tech" style="background-color: var(--perigo) !important; padding: 6px 12px; font-size: 11px; font-weight: 600; width: 100%; justify-content: center; height: 32px;">
+                                            <i class="fas fa-door-open"></i> Liberar Saída
+                                        </button>
+                                    </form>
+
+                                {% else %}
+                                    <span style="color: #94a3b8; font-weight: 600; font-size: 13px;"><i class="fas fa-circle-check" style="color: var(--sucesso)"></i> Operação Concluída</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="7" style="padding: 60px; text-align: center; color: #94a3b8;">
+                            <i class="fas fa-folder-open" style="font-size: 36px; margin-bottom: 10px; display: block;"></i>
+                            Nenhum motorista ou veículo em movimentação ativa no pátio.
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div id="modalExportar" class="modal-backdrop" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fas fa-calendar-days" style="color: #1f804b;"></i> Exportar Relatório Consolidado</h3>
+            <button class="modal-close-btn" onclick="fecharModalExportar()">&times;</button>
+        </div>
+        <form method="GET" action="/exportar" onsubmit="return validarPeriodoExportacao()">
+            <div class="modal-body">
+                <p style="font-size: 13px; color: var(--texto-mutado); margin-bottom: 20px; line-height: 1.5;">
+                    Selecione as datas limite para geração da planilha de auditoria. Para preservar a performance da aplicação, as exportações estão restritas a intervalos de **no máximo 1 ano (365 dias)**.
+                </p>
+                <div style="display: flex; gap: 15px;">
+                    <div class="form-grupo" style="flex: 1;">
+                        <label style="font-size: 12px; font-weight: 600; color: #475569;">Data de Início:</label>
+                        <input type="date" id="export_data_inicio" name="data_inicio" required>
+                    </div>
+                    <div class="form-grupo" style="flex: 1;">
+                        <label style="font-size: 12px; font-weight: 600; color: #475569;">Data de Término:</label>
+                        <input type="date" id="export_data_fim" name="data_fim" required>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-custom-tech" style="background-color: #cbd5e1 !important; color: #303841 !important;" onclick="fecharModalExportar()">Cancelar</button>
+                <button type="submit" class="btn-custom-tech" style="background-color: #1f804b !important;">
+                    <i class="fas fa-file-import"></i> Baixar Planilha
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='assets/js/dash.js') }}"></script>
+{% endblock %}

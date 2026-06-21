@@ -1,0 +1,429 @@
+/* ==========================================================================
+   VARIÁVEIS DE COR CORPORATIVAS (PÁTIO PLANO)
+   ========================================================================== */
+:root {
+    --bg-geral: #f5f5f5;
+    --bg-navbar: #76abae;
+    --cor-icones-nav: #303841;
+    --texto-escuro: #2d3748;
+    --texto-mutado: #718096;
+    --sucesso: #2ecc71;
+    --perigo: #e74c3c;
+    --borda: #cbd5e1;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    background-color: var(--bg-geral) !important;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
+    color: var(--texto-escuro);
+}
+
+/* ==========================================================================
+   SIDEBAR FIXA À ESQUERDA
+   ========================================================================== */
+.sidebar {
+    background-color: var(--bg-navbar);
+    width: 75px;
+    height: 100vh;
+    position: fixed;
+    left: 0;
+    top: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 25px;
+    gap: 20px;
+    box-shadow: 3px 0 10px rgba(0,0,0,0.05);
+    z-index: 1000;
+}
+
+.sidebar a, .sidebar .logo {
+    color: var(--cor-icones-nav) !important;
+    font-size: 24px;
+    text-decoration: none;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.sidebar a:hover {
+    background-color: rgba(48, 56, 65, 0.15);
+    transform: scale(1.05);
+}
+
+/* DESLOCAMENTO DO PAINEL DO PÁTIO */
+.content-area {
+    margin-left: 75px; 
+    padding: 40px;
+    min-height: 100vh;
+}
+
+/* ==========================================================================
+   PAINÉIS, BOTÕES E COMPONENTES
+   ========================================================================== */
+.dash-container {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.header-painel {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.header-painel h1 {
+    font-size: 28px;
+    font-weight: 700;
+    margin: 0;
+    color: var(--cor-icones-nav);
+}
+
+.grupo-botoes {
+    display: flex;
+    gap: 12px;
+}
+
+.btn-custom-tech {
+    background-color: var(--cor-icones-nav) !important;
+    color: #ffffff !important;
+    border: none;
+    padding: 11px 22px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 14px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-custom-tech:hover {
+    background-color: #1e242b !important;
+}
+
+/* Filtros e Formulários */
+.form-filtro {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 30px;
+    background: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+    align-items: flex-end;
+    border: 1px solid #e2e8f0;
+}
+
+.card-container {
+    background: #ffffff;
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 40px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+    border: 1px solid #e2e8f0;
+}
+
+.form-grupo {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 18px;
+}
+
+.form-grupo label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #4a5568;
+}
+
+input[type="text"], input[type="password"], input[type="tel"], select {
+    width: 100%;
+    padding: 11px 14px;
+    border: 1px solid var(--borda);
+    border-radius: 6px;
+    font-size: 14px;
+    color: var(--texto-escuro);
+    background-color: #ffffff;
+}
+
+/* ==========================================================================
+   TABELA DO PORTYARD
+   ========================================================================== */
+.responsive-table-container {
+    background: #ffffff;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+    overflow-x: auto;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+}
+
+.table-tech {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 14px;
+}
+
+.table-tech th {
+    background-color: var(--cor-icones-nav);
+    color: #ffffff;
+    padding: 16px 20px;
+    font-weight: 600;
+}
+
+.table-tech td {
+    padding: 16px 20px;
+    vertical-align: middle;
+}
+
+.table-row-tech {
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.table-row-tech:hover {
+    background-color: #f8fafc;
+}
+
+/* Badges de Status */
+.badge-status {
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    display: inline-block;
+}
+.badge-patio { background: #fef3c7; color: #d97706; }
+.badge-doca { background: #dcfce7; color: #15803d; }
+.badge-concluido { background: #e2e8f0; color: #475569; }
+
+/* ==========================================================================
+   SISTEMA DE LOGIN ISOLADO
+   ========================================================================== */
+.login-body {
+    background-color: var(--bg-geral);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+}
+
+.login-box {
+    background: #ffffff;
+    padding: 45px;
+    border-radius: 10px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.04);
+    width: 100%;
+    max-width: 420px;
+    border: 1px solid #e2e8f0;
+    text-align: center;
+}
+/* ==========================================================================
+   NOVA MARCA AMARRONZADA (NÃO CONFUNDE COM O MENU)
+   ========================================================================== */
+.logo-brand {
+    color: #8B5A2B !important; /* Tom amarronzado premium corporativo */
+    font-size: 26px;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    background-color: rgba(139, 90, 43, 0.12); /* Fundo sutil combinando */
+    margin-bottom: 10px;
+}
+
+/* ==========================================================================
+   ESTILIZAÇÃO MODAL DE EXPORTAÇÃO (.XLSX)
+   ========================================================================== */
+.modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(30, 41, 59, 0.6); /* Backdrop escuro blur sutil */
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    animation: fadeIn 0.2s ease-out;
+}
+
+.modal-content {
+    background: #ffffff;
+    width: 100%;
+    max-width: 500px;
+    border-radius: 12px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    overflow: hidden;
+    border: 1px solid #e2e8f0;
+    animation: slideUp 0.25s ease-out;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 25px;
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 16px;
+    color: #1e293b;
+    font-weight: 700;
+}
+
+.modal-close-btn {
+    background: transparent;
+    border: none;
+    font-size: 24px;
+    color: #94a3b8;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.modal-close-btn:hover {
+    color: #64748b;
+}
+
+.modal-body {
+    padding: 25px;
+}
+
+.modal-footer {
+    padding: 15px 25px;
+    background: #f8fafc;
+    border-top: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+input[type="date"] {
+    width: 100%;
+    padding: 11px 14px;
+    border: 1px solid var(--borda);
+    border-radius: 6px;
+    font-size: 14px;
+    color: var(--texto-escuro);
+    font-family: inherit;
+}
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { transform: translateY(20px); } to { transform: translateY(0); } }
+
+/* ==========================================================================
+   ANIMAÇÕES DE CARGA E DESCARGA EM TEMPO REAL (PORTYARD YMS)
+   ========================================================================== */
+
+/* Caixa de contenção dos ícones animados */
+.wrapper-animacao-yms {
+    position: relative;
+    width: 70px;
+    height: 32px;
+    background: #f8fafc;
+    border: 1px dashed #cbd5e1;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+/* Caminhão base estático/vibrando sutilmente na doca */
+.truck-base-anim {
+    font-size: 18px;
+    color: #303841;
+    position: absolute;
+    left: 8px;
+    bottom: 6px;
+    animation: vibrarDoca 0.4s infinite alternate;
+}
+
+/* ANIMAÇÃO 1: Caixa Entrando no Caminhão (Carregando) */
+.box-carga-anim {
+    font-size: 10px;
+    color: #2ecc71;
+    position: absolute;
+    bottom: 10px;
+    animation: fluxoCarregar 1.6s infinite linear;
+}
+
+/* ANIMAÇÃO 2: Caixa Saindo do Caminhão (Descarregando) */
+.box-descarga-anim {
+    font-size: 10px;
+    color: #e67e22;
+    position: absolute;
+    bottom: 10px;
+    animation: fluxoDescarregar 1.6s infinite linear;
+}
+
+/* ==========================================================================
+   KEYFRAMES MATRICIAIS (EFEITOS DE MOVIMENTO)
+   ========================================================================== */
+
+/* Vibração mecânica do motor do caminhão estacionado */
+@keyframes vibrarDoca {
+    from { transform: translateY(0); }
+    to { transform: translateY(-1px); }
+}
+
+/* Fluxo da esquerda para a direita: a caixa entra na caçamba e some */
+@keyframes fluxoCarregar {
+    0% {
+        opacity: 0;
+        transform: translateX(35px) scale(0.6);
+    }
+    30% {
+        opacity: 1;
+        transform: translateX(20px) scale(1);
+    }
+    80% {
+        opacity: 1;
+        transform: translateX(-2px) scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: translateX(-10px) scale(0.7);
+    }
+}
+
+/* Fluxo da direita para a esquerda: a caixa surge de dentro do caminhão e sai */
+@keyframes fluxoDescarregar {
+    0% {
+        opacity: 0;
+        transform: translateX(-10px) scale(0.7);
+    }
+    20% {
+        opacity: 1;
+        transform: translateX(-2px) scale(1);
+    }
+    75% {
+        opacity: 1;
+        transform: translateX(20px) scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: translateX(35px) scale(0.6);
+    }
+}

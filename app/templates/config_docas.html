@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="dash-container" style="max-width: 1300px;">
+    
+    <div class="header-painel">
+        <div>
+            <h1>Configuração de Docas Operacionais</h1>
+            <p style="color: var(--texto-mutado); margin-top: 5px;">Gerencie e monitore a capacidade de carga e descarga do terminal.</p>
+        </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 35px; margin-top: 25px; align-items: flex-start;">
+        
+        <div class="card-container" style="margin: 0; padding: 35px; background: #ffffff; border-radius: 12px;">
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px; border-bottom: 2px solid #f1f5f9; padding-bottom: 15px;">
+                <div style="background: rgba(118, 171, 174, 0.15); width: 45px; height: 45px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--bg-navbar);">
+                    <i class="fas fa-plus" style="font-size: 20px;"></i>
+                </div>
+                <div>
+                    <h3 style="margin: 0; color: var(--cor-icones-nav); font-size: 18px;">Ativar Nova Doca</h3>
+                    <small style="color: var(--texto-mutado);">Disponibilize mais um ponto de parada</small>
+                </div>
+            </div>
+
+            <form method="POST" action="/config_docas">
+                <div class="form-grupo">
+                    <label style="font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Identificador / Número:</label>
+                    <input type="text" name="numero" placeholder="Ex: Doca 05, Doca Comercial" required style="padding: 13px;">
+                </div>
+                <button type="submit" class="btn-custom-tech" style="width: 100%; justify-content: center; padding: 13px; margin-top: 15px; font-size: 14px;">
+                    <i class="fas fa-circle-check"></i> Habilitar Ponto de Carga
+                </button>
+            </form>
+        </div>
+
+        <div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h3 style="margin: 0; color: var(--cor-icones-nav); font-size: 18px; display: flex; align-items: center; gap: 10px;">
+                    <i class="fas fa-warehouse" style="color: var(--bg-navbar)"></i> Docas em Operação
+                </h3>
+                <span style="font-size: 13px; background: #e2e8f0; padding: 4px 12px; border-radius: 15px; font-weight: 600; color: var(--cor-icones-nav);">
+                    {{ docas|length }} Registradas
+                </span>
+            </div>
+
+            <div class="responsive-table-container" style="border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.02);">
+                <table class="table-tech">
+                    <thead>
+                        <tr>
+                            <th style="width: 100px; text-align: center;">Código</th>
+                            <th>Descrição do Ponto</th>
+                            <th style="width: 180px; text-align: center;">Status Operacional</th>
+                            <th style="width: 140px; text-align: center;">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if docas %}
+                            {% for doca in docas %}
+                                <tr class="table-row-tech">
+                                    <td style="text-align: center;"><span style="font-family: monospace; font-weight: 700; color: var(--texto-mutado); background: #f1f5f9; padding: 4px 8px; border-radius: 4px;">#{{ doca.id }}</span></td>
+                                    <td>
+                                        <div style="display: flex; align-items: center; gap: 12px;">
+                                            <i class="fas fa-door-open" style="color: #94a3b8; font-size: 18px;"></i>
+                                            <strong>{{ doca.numero }}</strong>
+                                        </div>
+                                    </td>
+                                    <td style="text-align: center;">
+                                        {% if doca.status == 'Livre' or not doca.status %}
+                                            <span class="badge-status badge-doca" style="display: inline-flex; align-items: center; gap: 6px;"><i class="fas fa-circle" style="font-size: 8px;"></i> Disponível</span>
+                                        {% else %}
+                                            <span class="badge-status badge-patio" style="display: inline-flex; align-items: center; gap: 6px; background: #fee2e2; color: #ef4444;"><i class="fas fa-truck" style="font-size: 10px;"></i> Ocupada</span>
+                                        {% endif %}
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <form action="/deletar_doca/{{ doca.id }}" method="POST" onsubmit="return confirm('Tem certeza que deseja remover permanentemente esta doca da malha operacional?');" style="margin: 0;">
+                                            <button type="submit" class="btn-custom-tech" style="background-color: transparent !important; color: var(--perigo) !important; border: 1px solid rgba(231, 76, 60, 0.3) !important; padding: 6px 14px; font-size: 12px; border-radius: 6px;">
+                                                <i class="fas fa-trash-can"></i> Desativar
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="4" style="padding: 60px; text-align: center; color: #94a3b8;">
+                                    <i class="fas fa-triangle-exclamation" style="font-size: 40px; margin-bottom: 12px; color: #cbd5e1; display: block;"></i>
+                                    Nenhuma doca ativa no mapa de pátio. Cadastre um ponto à esquerda.
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

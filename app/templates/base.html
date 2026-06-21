@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PortYard - YMS</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='assets/global.css') }}">
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="logo"><i class="fas fa-boxes-stacked"></i></div>
+        <a href="/dashboard" title="Dashboard"><i class="fas fa-chart-pie"></i></a>
+        <a href="/entrada" title="Registrar Entrada"><i class="fas fa-truck-ramp-box"></i></a>
+        <a href="/config_docas" title="Configurar Docas"><i class="fas fa-gears"></i></a>
+        <a href="/logout" title="Sair" style="margin-top: auto; margin-bottom: 25px;"><i class="fas fa-right-from-bracket"></i></a>
+    </div>
+
+    <div class="content-area">
+        {% block content %}{% endblock %}
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <title>PortYard - Configuração de Docas</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f4f6f9; }
+        .container { max-width: 600px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0px 0px 10px rgba(0,0,0,0.1); }
+        .campo { margin-bottom: 15px; display: flex; gap: 10px; }
+        input { flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+        button { background-color: #28a745; color: white; padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        button:hover { background-color: #218838; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background-color: #343a40; color: white; }
+        .status-livre { color: green; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>PortYard - Configurar Docas do Pátio</h2>
+    <p style="color: #666;">Cadastre as docas disponíveis na sua unidade logística.</p>
+    
+    <form action="/docas" method="POST" class="campo">
+        <input type="text" name="numero_doca" required placeholder="Ex: Doca 01...">
+        <button type="submit">+ Adicionar Doca</button>
+    </form>
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Identificação da Doca</th>
+                <th>Status Inicial</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for doca in docas %}
+            <tr>
+                <td>{{ doca.id }}</td>
+                <td><strong>{{ doca.numero }}</strong></td>
+                <td><span class="status-livre">{{ doca.status }}</span></td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="3" style="text-align: center; color: #777;">Nenhuma doca cadastrada ainda.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <br>
+    <a href="/painel" style="text-decoration: none; color: #007bff;">← Voltar para o Dashboard</a>
+</div>
+
+</body>
+</html>
