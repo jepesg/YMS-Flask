@@ -1,6 +1,4 @@
-/* ==========================================================================
-   VARIÁVEIS DE COR CORPORATIVAS (PÁTIO PLANO)
-   ========================================================================== */
+/* VARIÁVEIS DE COR CORPORATIVAS */
 :root {
     --bg-geral: #f5f5f5;
     --bg-navbar: #76abae;
@@ -24,9 +22,7 @@ body {
     color: var(--texto-escuro);
 }
 
-/* ==========================================================================
-   SIDEBAR FIXA À ESQUERDA
-   ========================================================================== */
+/* SIDEBAR FIXA À ESQUERDA*/
 .sidebar {
     background-color: var(--bg-navbar);
     width: 75px;
@@ -68,9 +64,7 @@ body {
     min-height: 100vh;
 }
 
-/* ==========================================================================
-   PAINÉIS, BOTÕES E COMPONENTES
-   ========================================================================== */
+/* PAINÉIS, BOTÕES E COMPONENTES */
 .dash-container {
     max-width: 1400px;
     margin: 0 auto;
@@ -161,9 +155,7 @@ input[type="text"], input[type="password"], input[type="tel"], select {
     background-color: #ffffff;
 }
 
-/* ==========================================================================
-   TABELA DO PORTYARD
-   ========================================================================== */
+/* TABELA */
 .responsive-table-container {
     background: #ffffff;
     box-shadow: 0 4px 6px rgba(0,0,0,0.02);
@@ -236,9 +228,7 @@ input[type="text"], input[type="password"], input[type="tel"], select {
     cursor: pointer;
 }
 
-/* ==========================================================================
-   SISTEMA DE LOGIN ISOLADO
-   ========================================================================== */
+/* SISTEMA DE LOGIN ISOLADO */
 .login-body {
     background-color: var(--bg-geral);
     display: flex;
@@ -259,9 +249,7 @@ input[type="text"], input[type="password"], input[type="tel"], select {
     text-align: center;
 }
 
-/* ==========================================================================
-   NOVA MARCA AMARRONZADA (NÃO CONFUNDE COM O MENU)
-   ========================================================================== */
+/* NOVA MARCA AMARRONZADA */
 .logo-brand {
     color: #8B5A2B !important; 
     font-size: 26px;
@@ -275,9 +263,7 @@ input[type="text"], input[type="password"], input[type="tel"], select {
     margin-bottom: 10px;
 }
 
-/* ==========================================================================
-   ESTILIZAÇÃO MODAL DE EXPORTAÇÃO (.XLSX)
-   ========================================================================== */
+/* MODAL DE EXPORTAÇÃO */
 .modal-backdrop {
     position: fixed;
     top: 0;
@@ -359,9 +345,7 @@ input[type="date"] {
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes slideUp { from { transform: translateY(20px); } to { transform: translateY(0); } }
 
-/* ==========================================================================
-   ANIMAÇÕES DE CARGA E DESCARGA EM TEMPO REAL (PORTYARD YMS)
-   ========================================================================== */
+/* ANIMAÇÕES DE CARGA E DESCARGA*/
 .wrapper-animacao-yms {
     position: relative;
     width: 70px;
@@ -400,9 +384,7 @@ input[type="date"] {
     animation: fluxoDescarregar 1.6s infinite linear;
 }
 
-/* ==========================================================================
-   KEYFRAMES MATRICIAIS (EFEITOS DE MOVIMENTO)
-   ========================================================================== */
+/* EFEITOS DE MOVIMENTO */
 @keyframes vibrarDoca {
     from { transform: translateY(0); }
     to { transform: translateY(-1px); }
@@ -422,10 +404,7 @@ input[type="date"] {
     100% { opacity: 0; transform: translateX(35px) scale(0.6); }
 }
 
-/* ==========================================================================
-   MÁGICA COMPLETA DE RESPONSIVIDADE (SEM ALTERAR O HTML ORIGINAL)
-   ========================================================================== */
-
+/*   RESPONSIVIDADE 
 /* Prevenção global contra o zoom automático chato do Safari/Android Chrome */
 input, select, textarea {
     font-size: 16px !important;
