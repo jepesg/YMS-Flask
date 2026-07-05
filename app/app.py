@@ -178,7 +178,7 @@ def dashboard():
         status_atual=filtro_status
     )
 
-# Rota de Registro de Entrada
+# Rota de Registro de Entrada (Incluindo processamento de Foto via Webcam Base64)
 @app.route('/entrada', methods=['GET', 'POST'])
 @login_required
 def entrada():
@@ -189,7 +189,22 @@ def entrada():
         telefone = request.form.get('motorista_telefone')
         
         foto_salva_como = None
-        if 'foto' in request.files:
+        
+        # Primeiro, verifica se veio a foto tirada em tempo real via Webcam (String Base64)
+        foto_base64 = request.form.get('foto_base64')
+        if foto_base64 and ',' in foto_base64:
+            import base64
+            import uuid
+            header, dados_imagem = foto_base64.split(',', 1)
+            dados_decodificados = base64.b64decode(dados_imagem)
+            nome_final_foto = f"webcam_{cpf}_{uuid.uuid4().hex}.png"
+            caminho_fisico = os.path.join(app.config['UPLOAD_FOLDER'], nome_final_foto)
+            with open(caminho_fisico, "wb") as f:
+                f.write(dados_decodificados)
+            foto_salva_como = f"uploads/{nome_final_foto}"
+            
+        # Caso não use webcam, mantemos o fallback do arquivo tradicional
+        elif 'foto' in request.files:
             arquivo_foto = request.files['foto']
             if arquivo_foto and arquivo_foto.filename != '':
                 nome_seguro = secure_filename(arquivo_foto.filename)
@@ -344,15 +359,16 @@ def exportar():
         download_name=f"relatorio_yms_{datetime.now().strftime('%Y%m%d_%H%M')}.xlsx"
     )
 
+
 @app.route('/gerenciamento')
 @login_required
 def gerenciamento():
     hoje = datetime.now().date()
     
-    # Totalizadores filtando por empresa
+    # Totalizadores filtrando por empresa
     movimentacoes_hoje = Movimentacao.query.filter(
-        func.date(Movimentacao.data_hora_entrada) == hoje, 
-        Movimentacao.empresa_id == current_user.empresa_id
+        Movimentacao.empresa_id == current_user.empresa_id,
+        func.date(Movimentacao.data_hora_entrada) == hoje
     ).all()
     
     # Dados para o gráfico de pizza por status
@@ -365,9 +381,27 @@ def gerenciamento():
     label_status = [d[0] for d in status_dados]
     valores_status = [d[1] for d in status_dados]
 
-    # Media de tempo por doca
-    media_tempo_doca = [45, 30, 60, 90, 120]
-    labels_docas = [f'Doca {i+1}' for i in range(len(media_tempo_doca))]
+    # Calculo em tempo real
+    dados_docas_reais = db.session.query(
+        Doca.numero,
+        func.avg(
+            func.extract('epoch', Movimentacao.data_hora_saida - Movimentacao.data_hora_entrada) / 60
+        )
+    ).join(Doca, Movimentacao.doca_id == Doca.id)\
+     .filter(
+        Movimentacao.empresa_id == current_user.empresa_id,
+        Movimentacao.data_hora_entrada != None,
+        Movimentacao.data_hora_saida != None,
+        Movimentacao.doca_id != None
+    ).group_by(Doca.numero).all()
+
+    # Mapeamento e formatação das legendas textuais
+    if dados_docas_reais:
+        labels_docas = [str(d[0]) for d in dados_docas_reais]
+        media_tempo_doca = [round(float(d[1]), 1) if d[1] else 0.0 for d in dados_docas_reais]
+    else:
+        labels_docas = ["Sem movimentações"]
+        media_tempo_doca = [0]
 
     return render_template('gerenciamento.html',
                             movimentacoes=movimentacoes_hoje, 
