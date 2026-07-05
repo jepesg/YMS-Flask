@@ -3,23 +3,31 @@ import io
 from datetime import datetime
 from flask import Flask, render_template, request, redirect, url_for, flash, send_file
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import func
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 import pandas as pd
 
-# ==========================================
-# CONFIGURAÇÕES INICIAIS E DE SEGURANÇA     #
-# ==========================================
+
+# CONFIGURAÇÕES INICIAIS E DE SEGURANÇA
 
 from dotenv import load_dotenv
 load_dotenv()
 
+# 1. Defina a variável BASE_DIR em maiúsculas primeiro
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
-app = Flask(__name__, 
-            template_folder=os.path.join(BASE_DIR, 'templates'),
-            static_folder=os.path.join(BASE_DIR, 'static'))
+# 2. Configure o Flask usando essa variável
+app = Flask(
+    __name__,
+    template_folder=os.path.join(BASE_DIR, 'templates'),
+    static_folder=os.path.join(BASE_DIR, 'static')
+)
+
+# 3. Configure a pasta de uploads (Linha 31 que gerou o erro)
+UPLOAD_FOLDER = os.path.join(BASE_DIR, 'static', 'uploads')
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 # Configura as chaves puxando dinamicamente do ambiente seguro
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'sua-chave-secreta-padrao-caso-falhe')
@@ -39,9 +47,8 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 
-# ==========================================
-# MODELOS DO BANCO DE DADOS (MULTI-TENANT) #
-# ==========================================
+# MODELOS DO BANCO DE DADOS (MULTI-TENANT)
+
 
 class Empresa(db.Model):
     __tablename__ = 'empresa'
@@ -110,17 +117,17 @@ class Movimentacao(db.Model):
 def load_user(user_id):
     return Usuario.query.get(int(user_id))
 
-# ==================
-# ROTAS DO SISTEMA #
-# ==================
 
+# ROTAS DO SISTEMA 
+
+# Rota de Login e Logout
 @app.route('/', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        username = request.form.get('username')
+        username = request.form.get('username').strip().lower()
         password = request.form.get('password')
         
-        usuario = Usuario.query.filter_by(username=username).first()
+        usuario = Usuario.query.filter(func.lower(Usuario.username) == username).first()
         
         if usuario and check_password_hash(usuario.senha_hash, password):
             login_user(usuario)
@@ -136,6 +143,8 @@ def logout():
     logout_user()
     return redirect(url_for('login'))
 
+
+# Rotas do Dashboard e Funcionalidades
 @app.route('/dashboard')
 @login_required
 def dashboard():
@@ -169,6 +178,7 @@ def dashboard():
         status_atual=filtro_status
     )
 
+# Rota de Registro de Entrada
 @app.route('/entrada', methods=['GET', 'POST'])
 @login_required
 def entrada():
@@ -334,9 +344,40 @@ def exportar():
         download_name=f"relatorio_yms_{datetime.now().strftime('%Y%m%d_%H%M')}.xlsx"
     )
 
-# =======================================
-# INICIALIZAÇÃO SEGURA DO BANCO DE DADOS #
-# =======================================
+@app.route('/gerenciamento')
+@login_required
+def gerenciamento():
+    hoje = datetime.now().date()
+    
+    # Totalizadores filtando por empresa
+    movimentacoes_hoje = Movimentacao.query.filter(
+        func.date(Movimentacao.data_hora_entrada) == hoje, 
+        Movimentacao.empresa_id == current_user.empresa_id
+    ).all()
+    
+    # Dados para o gráfico de pizza por status
+    status_dados = db.session.query(
+        Movimentacao.status_atual, func.count(Movimentacao.id)
+    ).filter(
+        Movimentacao.empresa_id == current_user.empresa_id
+    ).group_by(Movimentacao.status_atual).all()
+    
+    label_status = [d[0] for d in status_dados]
+    valores_status = [d[1] for d in status_dados]
+
+    # Media de tempo por doca
+    media_tempo_doca = [45, 30, 60, 90, 120]
+    labels_docas = [f'Doca {i+1}' for i in range(len(media_tempo_doca))]
+
+    return render_template('gerenciamento.html',
+                            movimentacoes=movimentacoes_hoje, 
+                            label_status=label_status, 
+                            valores_status=valores_status, 
+                            labels_docas=labels_docas, 
+                            media_tempo_doca=media_tempo_doca)
+ 
+# INICIALIZAÇÃO SEGURA DO BANCO DE DADOS
+
 with app.app_context():
     db.create_all()
     

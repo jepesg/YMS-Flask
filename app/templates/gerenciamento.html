@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="main-content management-container">
+    <div class="header-pagina">
+        <h2>Gerenciamento e Indicadores Operacionais</h2>
+        <p>Monitore a eficiência das docas e o fluxo de veículos em tempo real.</p>
+    </div>
+
+    <div class="cards-indicators-grid">
+        <div class="indicator-card">
+            <h3>Entradas (Hoje)</h3>
+            <p class="number-green">{{ movimentacoes|length }}</p>
+        </div>
+        <div class="indicator-card">
+            <h3>Status do Pátio</h3>
+            <p class="text-dark">Ativos no Momento</p>
+        </div>
+    </div>
+
+    <div class="charts-grid">
+        <div class="chart-card">
+            <h4>Veículos por Status Atual</h4>
+            <div class="pie-chart-wrapper">
+                <canvas id="chartStatus"></canvas>
+            </div>
+        </div>
+        
+        <div class="chart-card">
+            <h4>Tempo Médio de Ocupação por Doca (Minutos)</h4>
+            <canvas id="chartTempoDoca"></canvas>
+        </div>
+    </div>
+</div>
+
+<div id="charts-data" 
+     style="display: none;"
+     data-status-labels='{{ label_status|tojson }}'
+     data-status-valores='{{ valores_status|tojson }}'
+     data-docas-labels='{{ labels_docas|tojson }}'
+     data-docas-tempos='{{ media_tempo_doca|tojson }}'>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{{ url_for('static', filename='assets/js/gerenciamento.js') }}"></script>
+{% endblock %}
