@@ -15,17 +15,17 @@ import pandas as pd
 from dotenv import load_dotenv
 load_dotenv()
 
-# 1. Defina a variável BASE_DIR em maiúsculas primeiro
+# variável BASE_DIR
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
-# 2. Configure o Flask usando essa variável
+# Configuração do Flask
 app = Flask(
     __name__,
     template_folder=os.path.join(BASE_DIR, 'templates'),
     static_folder=os.path.join(BASE_DIR, 'static')
 )
 
-# 3. Configure a pasta de uploads (Linha 31 que gerou o erro)
+# Configuração da pasta de upload
 UPLOAD_FOLDER = os.path.join(BASE_DIR, 'static', 'uploads')
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
