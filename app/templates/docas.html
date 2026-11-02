@@ -3,6 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PortYard - Configuração de Docas</title>
     <style>
         body { font-family: Arial, sans-serif; margin: 40px; background-color: #f4f6f9; }
@@ -15,6 +16,19 @@
         th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
         th { background-color: #343a40; color: white; }
         .status-livre { color: green; font-weight: bold; }
+        @media (max-width: 600px) {
+            body { margin: 16px; }
+            .container { width: auto; padding: 16px; }
+            .campo { flex-direction: column; }
+            .campo input, .campo button { width: 100%; min-height: 44px; }
+            table.mobile-stack, table.mobile-stack tbody, table.mobile-stack tr, table.mobile-stack td { display: block; width: 100%; }
+            table.mobile-stack thead { display: none; }
+            table.mobile-stack tr { margin: 12px 0; padding: 8px 12px; border: 1px solid #d8e2e5; border-radius: 12px; background: #fff; }
+            table.mobile-stack td { display: grid; grid-template-columns: minmax(92px, 35%) minmax(0, 1fr); gap: 8px; padding: 9px 0; overflow-wrap: anywhere; }
+            table.mobile-stack td::before { content: attr(data-label); color: #667d89; font-size: 12px; font-weight: 700; }
+            table.mobile-stack td[colspan] { display: block; text-align: center; }
+            table.mobile-stack td[colspan]::before { content: none; }
+        }
     </style>
 </head>
 <body>
@@ -24,11 +38,12 @@
     <p style="color: #666;">Cadastre as docas disponíveis na sua unidade logística.</p>
     
     <form action="/docas" method="POST" class="campo">
+<input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
         <input type="text" name="numero_doca" required placeholder="Ex: Doca 01...">
         <button type="submit">+ Adicionar Doca</button>
     </form>
 
-    <table>
+    <table class="mobile-stack">
         <thead>
             <tr>
                 <th>ID</th>
@@ -39,9 +54,9 @@
         <tbody>
             {% for doca in docas %}
             <tr>
-                <td>{{ doca.id }}</td>
-                <td><strong>{{ doca.numero }}</strong></td>
-                <td><span class="status-livre">{{ doca.status }}</span></td>
+                <td data-label="ID">{{ doca.id }}</td>
+                <td data-label="Doca"><strong>{{ doca.numero }}</strong></td>
+                <td data-label="Status"><span class="status-livre">{{ doca.status }}</span></td>
             </tr>
             {% else %}
             <tr>

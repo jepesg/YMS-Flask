@@ -1,10 +1,14 @@
 import os
 import io
+import hmac
+import secrets
+import base64
+import binascii
+import uuid
 from datetime import datetime
-from flask import Flask, render_template, request, redirect, url_for, flash, send_file
+from flask import Flask, render_template, request, redirect, url_for, flash, send_file, session, abort
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import func
-from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 import pandas as pd
@@ -30,9 +34,41 @@ UPLOAD_FOLDER = os.path.join(BASE_DIR, 'static', 'uploads')
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 # Configura as chaves puxando dinamicamente do ambiente seguro
-app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'sua-chave-secreta-padrao-caso-falhe')
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY') or secrets.token_hex(32)
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL') or (
+    'sqlite:///' + os.path.abspath(os.path.join(BASE_DIR, '..', 'DB', 'portyard.db')).replace(os.sep, '/')
+)
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config.update(SESSION_COOKIE_HTTPONLY=True, SESSION_COOKIE_SAMESITE='Lax',
+                  SESSION_COOKIE_SECURE=os.getenv('COOKIE_SECURE', 'false').lower() == 'true',
+                  PERMANENT_SESSION_LIFETIME=__import__('datetime').timedelta(hours=8),
+                  MAX_CONTENT_LENGTH=5 * 1024 * 1024)
+ALLOWED_IMAGE_TYPES = {'image/jpeg': '.jpg', 'image/png': '.png', 'image/webp': '.webp'}
+
+@app.context_processor
+def inject_csrf_token():
+    return {'csrf_token': csrf_token}
+
+def csrf_token():
+    if '_csrf_token' not in session:
+        session['_csrf_token'] = secrets.token_urlsafe(32)
+    return session['_csrf_token']
+
+@app.before_request
+def protect_state_changes():
+    if request.method in {'POST', 'PUT', 'PATCH', 'DELETE'}:
+        expected = session.get('_csrf_token', '')
+        supplied = request.form.get('_csrf_token', '') or request.headers.get('X-CSRF-Token', '')
+        if not expected or not supplied or not hmac.compare_digest(expected, supplied):
+            abort(400, description='Token de segurança inválido. Atualize a página e tente novamente.')
+
+@app.after_request
+def set_security_headers(response):
+    response.headers.setdefault('X-Content-Type-Options', 'nosniff')
+    response.headers.setdefault('X-Frame-Options', 'DENY')
+    response.headers.setdefault('Referrer-Policy', 'strict-origin-when-cross-origin')
+    response.headers.setdefault('Permissions-Policy', 'camera=(self), microphone=(), geolocation=()')
+    return response
 
 # Configurações de Uploads
 UPLOAD_FOLDER = os.path.join(BASE_DIR, 'static', 'uploads')
@@ -115,7 +151,10 @@ class Movimentacao(db.Model):
 
 @login_manager.user_loader
 def load_user(user_id):
-    return Usuario.query.get(int(user_id))
+    try:
+        return db.session.get(Usuario, int(user_id))
+    except (TypeError, ValueError):
+        return None
 
 
 # ROTAS DO SISTEMA 
@@ -124,20 +163,22 @@ def load_user(user_id):
 @app.route('/', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        username = request.form.get('username').strip().lower()
-        password = request.form.get('password')
+        username = (request.form.get('username') or '').strip().lower()
+        password = request.form.get('password') or ''
         
         usuario = Usuario.query.filter(func.lower(Usuario.username) == username).first()
         
         if usuario and check_password_hash(usuario.senha_hash, password):
-            login_user(usuario)
+            session.clear()
+            login_user(usuario, remember=False, fresh=True)
+            session.permanent = True
             return redirect(url_for('dashboard'))
         
         flash('Usuário ou senha incorretos!', 'danger')
         
     return render_template('login.html')
 
-@app.route('/logout')
+@app.route('/logout', methods=['POST'])
 @login_required
 def logout():
     logout_user()
@@ -191,28 +232,38 @@ def entrada():
         foto_salva_como = None
         
         # Primeiro, verifica se veio a foto tirada em tempo real via Webcam (String Base64)
-        foto_base64 = request.form.get('foto_base64')
-        if foto_base64 and ',' in foto_base64:
-            import base64
-            import uuid
-            header, dados_imagem = foto_base64.split(',', 1)
-            dados_decodificados = base64.b64decode(dados_imagem)
-            nome_final_foto = f"webcam_{cpf}_{uuid.uuid4().hex}.png"
-            caminho_fisico = os.path.join(app.config['UPLOAD_FOLDER'], nome_final_foto)
-            with open(caminho_fisico, "wb") as f:
-                f.write(dados_decodificados)
-            foto_salva_como = f"uploads/{nome_final_foto}"
-            
-        # Caso não use webcam, mantemos o fallback do arquivo tradicional
+        foto_base64 = request.form.get('foto_base64', '')
+        if foto_base64:
+            try:
+                header, encoded = foto_base64.split(',', 1)
+                mime = header.split(';', 1)[0].replace('data:', '')
+                extension = ALLOWED_IMAGE_TYPES.get(mime)
+                if not extension or len(encoded) > 4_500_000:
+                    raise ValueError('Imagem inválida ou muito grande.')
+                image_bytes = base64.b64decode(encoded, validate=True)
+                signatures = (bytes.fromhex('ffd8ff'), bytes.fromhex('89504e470d0a1a0a'), b'RIFF')
+                if not image_bytes.startswith(signatures):
+                    raise ValueError('Conteúdo de imagem inválido.')
+                filename = f"webcam_{uuid.uuid4().hex}{extension}"
+                with open(os.path.join(app.config['UPLOAD_FOLDER'], filename), 'wb') as image_file:
+                    image_file.write(image_bytes)
+                foto_salva_como = f"uploads/{filename}"
+            except (ValueError, binascii.Error):
+                flash('A foto enviada é inválida. Use JPG, PNG ou WEBP de até 5 MB.', 'danger')
+                return render_template('entrada.html'), 400
         elif 'foto' in request.files:
             arquivo_foto = request.files['foto']
-            if arquivo_foto and arquivo_foto.filename != '':
-                nome_seguro = secure_filename(arquivo_foto.filename)
-                extensao = os.path.splitext(nome_seguro)[1]
-                nome_final_foto = f"acesso_{cpf}_{int(datetime.now().timestamp())}{extensao}"
-                caminho_fisico = os.path.join(app.config['UPLOAD_FOLDER'], nome_final_foto)
-                arquivo_foto.save(caminho_fisico)
-                foto_salva_como = f"uploads/{nome_final_foto}"
+            if arquivo_foto and arquivo_foto.filename:
+                extension = ALLOWED_IMAGE_TYPES.get(arquivo_foto.mimetype)
+                signature = arquivo_foto.stream.read(12)
+                arquivo_foto.stream.seek(0)
+                signatures = (bytes.fromhex('ffd8ff'), bytes.fromhex('89504e470d0a1a0a'), b'RIFF')
+                if not extension or not signature.startswith(signatures):
+                    flash('Envie uma foto JPG, PNG ou WEBP válida.', 'danger')
+                    return render_template('entrada.html'), 400
+                filename = f"acesso_{uuid.uuid4().hex}{extension}"
+                arquivo_foto.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                foto_salva_como = f"uploads/{filename}"
 
         if tipo_entrada == 'visitante':
             novo_veiculo = Veiculo(
@@ -249,7 +300,10 @@ def atualizar_status(id):
     mov = Movimentacao.query.filter_by(id=id, empresa_id=current_user.empresa_id).first_or_404()
     
     doca_id_raw = request.form.get('doca_id')
-    doca_id = int(doca_id_raw) if doca_id_raw else None
+    try:
+        doca_id = int(doca_id_raw) if doca_id_raw else None
+    except (TypeError, ValueError):
+        doca_id = None
     
     tipo_op = request.form.get('tipo_operacao', 'Carga')
     
@@ -258,7 +312,7 @@ def atualizar_status(id):
         return redirect(url_for('dashboard'))
 
     doca = Doca.query.filter_by(id=doca_id, empresa_id=current_user.empresa_id).first()
-    if doca:
+    if doca and doca.status == 'Livre' and mov.status_atual != 'Concluído':
         doca.status = 'Ocupada'
         mov.doca_id = doca.id
         mov.status_atual = 'Em Doca'
@@ -267,7 +321,7 @@ def atualizar_status(id):
         db.session.commit()
         flash('Veículo direcionado para a doca com sucesso!', 'sucesso')
     else:
-        flash('Doca não encontrada ou inválida.', 'erro')
+        flash('Doca indisponível, não encontrada ou inválida.', 'erro')
     
     return redirect(url_for('dashboard'))
 
@@ -318,8 +372,14 @@ def exportar():
         flash('Por favor, informe o período completo para exportar.', 'danger')
         return redirect(url_for('dashboard'))
 
-    inicio = datetime.strptime(data_inicio_str, '%Y-%m-%d')
-    fim = datetime.strptime(data_fim_str + ' 23:59:59', '%Y-%m-%d %H:%M:%S')
+    try:
+        inicio = datetime.strptime(data_inicio_str, '%Y-%m-%d')
+        fim = datetime.strptime(data_fim_str, '%Y-%m-%d').replace(hour=23, minute=59, second=59)
+        if fim < inicio:
+            raise ValueError('Período inválido')
+    except ValueError:
+        flash('O período informado é inválido.', 'danger')
+        return redirect(url_for('dashboard'))
     
     dados = Movimentacao.query.filter(
         Movimentacao.empresa_id == current_user.empresa_id,
@@ -430,4 +490,4 @@ with app.app_context():
         db.session.commit()
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=os.getenv('FLASK_DEBUG', 'false').lower() == 'true')

@@ -6,8 +6,10 @@
     <title>PortYard - YMS</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='assets/global.css') }}">
+    <meta name="theme-color" content="#102a43">
 </head>
 <body>
+<div class="page-loader" id="page-loader" aria-live="polite" aria-label="Carregando" hidden><div class="loader-mark"><span></span><span></span><span></span></div><p>Preparando o pátio...</p></div>
 
 <div class="sidebar">
     <div class="logo">
@@ -29,14 +31,30 @@
         <i class="fas fa-cogs"></i>
     </a>
 
-    <a href="{{ url_for('logout') }}" title="Sair">
-        <i class="fas fa-sign-out-alt"></i>
-    </a>
+    <form action="{{ url_for('logout') }}" method="POST" class="logout-form">
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" title="Sair" aria-label="Sair"><i class="fas fa-sign-out-alt"></i></button>
+    </form>
 </div>
 
-    <div class="content-area">
+    <div class="content-area" id="main-content" tabindex="-1">
         {% block content %}{% endblock %}
     </div>
 
+<script>
+(() => {
+ const loader=document.getElementById('page-loader');
+ const show=()=>{loader.hidden=false;};
+ document.querySelectorAll('form[method="POST" i]').forEach(form=>form.addEventListener('submit',()=>{
+   const button=form.querySelector('button[type="submit"],input[type="submit"]');
+   if(button){button.disabled=true;button.classList.add('is-loading');}
+   show();
+ }));
+ document.querySelectorAll('a[href]').forEach(link=>link.addEventListener('click',event=>{
+   if(event.button===0&&!event.ctrlKey&&!event.metaKey&&!event.shiftKey&&!link.target&&!link.href.includes('#'))show();
+ }));
+ window.addEventListener('pageshow',()=>{loader.hidden=true;});
+})();
+</script>
 </body>
 </html>

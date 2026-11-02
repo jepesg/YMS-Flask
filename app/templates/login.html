@@ -25,6 +25,7 @@
         {% endwith %}
 
         <form method="POST" action="/">
+<input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
             <div class="form-grupo" style="text-align: left;">
                 <label>Usuário ou Operador:</label>
                 <input type="text" name="username" placeholder="Digite seu usuário" required autocomplete="off" autocapitalize="none">

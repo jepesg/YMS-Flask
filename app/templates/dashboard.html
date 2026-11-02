@@ -9,13 +9,13 @@
             <p style="color: var(--texto-mutado); margin: 5px 0 0 0;">Gerencie o fluxo de veículos, motoristas e pedestres em tempo real.</p>
         </div>
         <div class="grupo-botoes">
-            <a href="/dashboard" class="btn-custom-tech" style="background-color: #2ecc71 !important;">
+            <a href="/dashboard" class="btn-custom-tech" style="background-color: #d9eee4 !important; color: #365b4d !important;">
                 <i class="fas fa-sync-alt"></i> Atualizar Painel
             </a>
-            <a href="/entrada" class="btn-custom-tech" style="background-color: #0084ff !important;">
+            <a href="/entrada" class="btn-custom-tech" style="background-color: #dceaf4 !important; color: #37576d !important;">
                 <i class="fas fa-plus"></i> Nova Entrada
             </a>
-            <button class="btn-custom-tech" style="background-color: #1f804b !important;" onclick="abrirModalExportar()">
+            <button class="btn-custom-tech" style="background-color: #dcebe7 !important; color: #294d4d !important;" onclick="abrirModalExportar()">
                 <i class="fas fa-file-excel"></i> Exportar Excel
             </button>
         </div>
@@ -42,7 +42,7 @@
     </form>
 
     <div class="responsive-table-container">
-        <table class="table-tech">
+        <table class="table-tech mobile-stack">
             <thead>
                 <tr>
                     <th style="width: 70px;">Foto</th>
@@ -58,7 +58,7 @@
                 {% if movimentacoes %}
                     {% for mov in movimentacoes %}
                         <tr class="table-row-tech">
-                            <td>
+                            <td data-label="Foto">
                                 {% if mov.veiculo.foto_caminho %}
                                     <img src="{{ url_for('static', filename=mov.veiculo.foto_caminho) }}" style="width: 45px; height: 45px; border-radius: 50%; object-fit: cover;">
                                 {% else %}
@@ -66,12 +66,12 @@
                                 {% endif %}
                             </td>
                             
-                            <td><strong>{{ mov.veiculo.motorista_nome }}</strong><br><small>{{ mov.veiculo.motorista_cpf }}</small></td>
-                            <td style="font-family: monospace; font-size: 15px;">{{ mov.veiculo.placa if mov.veiculo.placa else '-' }}</td>
-                            <td>{{ mov.veiculo.modelo if mov.veiculo.modelo else 'Pedestre' }}<br><small>{{ mov.veiculo.transportadora if mov.veiculo.transportadora else '' }}</small></td>
-                            <td>{{ mov.data_hora_entrada.strftime('%d/%m/%Y %H:%M') }}</td>
+                            <td data-label="Motorista"><strong>{{ mov.veiculo.motorista_nome }}</strong><br><small>{{ mov.veiculo.motorista_cpf }}</small></td>
+                            <td data-label="Placa" style="font-family: monospace; font-size: 15px;">{{ mov.veiculo.placa if mov.veiculo.placa else '-' }}</td>
+                            <td data-label="Modelo / Empresa">{{ mov.veiculo.modelo if mov.veiculo.modelo else 'Pedestre' }}<br><small>{{ mov.veiculo.transportadora if mov.veiculo.transportadora else '' }}</small></td>
+                            <td data-label="Entrada">{{ mov.data_hora_entrada.strftime('%d/%m/%Y %H:%M') }}</td>
                             
-                            <td>
+                            <td data-label="Status">
                                 {% if mov.status_atual == 'No Pátio' %}
                                     <span class="badge-status badge-patio">No Pátio</span>
                                 {% elif mov.status_atual == 'Em Doca' %}
@@ -81,9 +81,10 @@
                                 {% endif %}
                             </td>
                             
-                            <td style="text-align: center; vertical-align: middle;">
+                            <td data-label="Ações" style="text-align: center; vertical-align: middle;">
                                 {% if mov.status_atual == 'No Pátio' %}
                                     <form action="/atualizar_status/{{ mov.id }}" method="POST" style="display: flex; flex-direction: column; gap: 6px; align-items: center; width: 100%; margin: 0;">
+<input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
                                         <div style="display: flex; gap: 4px; width: 100%;">
                                             <select name="doca_id" required style="padding: 6px; font-size: 12px; flex: 1; height: 32px;">
                                                 <option value="" disabled selected>Doca</option>
@@ -121,7 +122,8 @@
                                     </div>
 
                                     <form action="/registrar_saida/{{ mov.id }}" method="POST" style="margin: 0; width: 100%;">
-                                        <button type="submit" class="btn-custom-tech" style="background-color: var(--perigo) !important; padding: 6px 12px; font-size: 11px; font-weight: 600; width: 100%; justify-content: center; height: 32px;">
+<input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="btn-custom-tech" style="background-color: #f4dddd !important; color: #874c4c !important; padding: 6px 12px; font-size: 11px; font-weight: 600; width: 100%; justify-content: center; height: 32px;">
                                             <i class="fas fa-door-open"></i> Liberar Saída
                                         </button>
                                     </form>
@@ -169,7 +171,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn-custom-tech" style="background-color: #cbd5e1 !important; color: #303841 !important;" onclick="fecharModalExportar()">Cancelar</button>
-                <button type="submit" class="btn-custom-tech" style="background-color: #1f804b !important;">
+                <button type="submit" class="btn-custom-tech" style="background-color: #dcebe7 !important; color: #294d4d !important;">
                     <i class="fas fa-file-import"></i> Baixar Planilha
                 </button>
             </div>
