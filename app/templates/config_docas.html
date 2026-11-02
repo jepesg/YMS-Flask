@@ -29,7 +29,7 @@
                     <label style="font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Identificador / Número:</label>
                     <input type="text" name="numero" placeholder="Ex: Doca 05, Doca Comercial" required style="padding: 13px;">
                 </div>
-                <button type="submit" class="btn-custom-tech" style="width: 100%; justify-content: center; padding: 13px; margin-top: 15px; font-size: 14px;">
+                <button type="submit" class="btn-custom-tech btn-accent" style="width: 100%; justify-content: center; padding: 13px; margin-top: 15px; font-size: 14px;">
                     <i class="fas fa-circle-check"></i> Habilitar Ponto de Carga
                 </button>
             </form>
@@ -46,7 +46,7 @@
             </div>
 
             <div class="responsive-table-container" style="border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.02);">
-                <table class="table-tech mobile-stack">
+                <table class="table-tech">
                     <thead>
                         <tr>
                             <th style="width: 100px; text-align: center;">Código</th>
@@ -59,24 +59,24 @@
                         {% if docas %}
                             {% for doca in docas %}
                                 <tr class="table-row-tech">
-                                    <td data-label="Código" style="text-align: center;"><span style="font-family: monospace; font-weight: 700; color: var(--texto-mutado); background: #f1f5f9; padding: 4px 8px; border-radius: 4px;">#{{ doca.id }}</span></td>
-                                    <td data-label="Descrição">
+                                    <td style="text-align: center;"><span style="font-family: monospace; font-weight: 700; color: var(--texto-mutado); background: #f1f5f9; padding: 4px 8px; border-radius: 4px;">#{{ doca.id }}</span></td>
+                                    <td>
                                         <div style="display: flex; align-items: center; gap: 12px;">
                                             <i class="fas fa-door-open" style="color: #94a3b8; font-size: 18px;"></i>
                                             <strong>{{ doca.numero }}</strong>
                                         </div>
                                     </td>
-                                    <td data-label="Status" style="text-align: center;">
+                                    <td style="text-align: center;">
                                         {% if doca.status == 'Livre' or not doca.status %}
                                             <span class="badge-status badge-doca" style="display: inline-flex; align-items: center; gap: 6px;"><i class="fas fa-circle" style="font-size: 8px;"></i> Disponível</span>
                                         {% else %}
                                             <span class="badge-status badge-patio" style="display: inline-flex; align-items: center; gap: 6px; background: #fee2e2; color: #ef4444;"><i class="fas fa-truck" style="font-size: 10px;"></i> Ocupada</span>
                                         {% endif %}
                                     </td>
-                                    <td data-label="Ações" style="text-align: center;">
+                                    <td style="text-align: center;">
                                         <form action="/deletar_doca/{{ doca.id }}" method="POST" onsubmit="return confirm('Tem certeza que deseja remover permanentemente esta doca da malha operacional?');" style="margin: 0;">
 <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
-                                            <button type="submit" class="btn-custom-tech" style="background-color: transparent !important; color: var(--perigo) !important; border: 1px solid rgba(231, 76, 60, 0.3) !important; padding: 6px 14px; font-size: 12px; border-radius: 6px;">
+                                            <button type="submit" class="btn-custom-tech btn-danger" style="padding: 6px 14px; font-size: 12px; border-radius: 6px;">
                                                 <i class="fas fa-trash-can"></i> Desativar
                                             </button>
                                         </form>
