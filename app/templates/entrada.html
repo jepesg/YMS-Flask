@@ -86,6 +86,37 @@
       />
     </div>
 
+    <div id="secao-veiculo">
+      <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 25px 0" />
+
+      <h3 class="vehicle-section-title" id="titulo-secao-veiculo">Dados do veículo</h3>
+      <p class="field-hint" id="descricao-secao-veiculo" hidden>
+        Se o visitante estiver com veículo, informe os dados disponíveis. O preenchimento é opcional.
+      </p>
+
+      <div class="form-grupo">
+        <label>Placa do Veículo:</label>
+        <input type="text" id="placa" name="placa" placeholder="ABC1234" maxlength="10" />
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px">
+        <div class="form-grupo">
+          <label>Modelo do Veículo:</label>
+          <input type="text" id="modelo" name="modelo" placeholder="Caminhão ou Carro" maxlength="50" />
+        </div>
+        <div class="form-grupo">
+          <label>Transportadora / Empresa:</label>
+          <input
+            type="text"
+            id="transportadora"
+            name="transportadora"
+            placeholder="Nome da Empresa"
+            maxlength="50"
+          />
+        </div>
+      </div>
+    </div>
+
     <div class="form-grupo" style="margin: 20px 0">
       <div class="form-group">
         <label><i class="fas fa-camera"></i> Foto do Condutor:</label>
@@ -124,37 +155,6 @@
           name="foto_arquivo"
           style="display: none"
         />
-      </div>
-    </div>
-
-    <div id="secao-veiculo">
-      <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 25px 0" />
-
-      <h3 class="vehicle-section-title" id="titulo-secao-veiculo">Dados do veículo</h3>
-      <p class="field-hint" id="descricao-secao-veiculo" hidden>
-        Se o visitante estiver com veículo, informe os dados disponíveis. O preenchimento é opcional.
-      </p>
-
-      <div class="form-grupo">
-        <label>Placa do Veículo:</label>
-        <input type="text" id="placa" name="placa" placeholder="ABC1234" maxlength="10" />
-      </div>
-
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px">
-        <div class="form-grupo">
-          <label>Modelo do Veículo:</label>
-          <input type="text" id="modelo" name="modelo" placeholder="Caminhão ou Carro" maxlength="50" />
-        </div>
-        <div class="form-grupo">
-          <label>Transportadora / Empresa:</label>
-          <input
-            type="text"
-            id="transportadora"
-            name="transportadora"
-            placeholder="Nome da Empresa"
-            maxlength="50"
-          />
-        </div>
       </div>
     </div>
 
