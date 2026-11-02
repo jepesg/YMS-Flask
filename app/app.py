@@ -269,6 +269,9 @@ def entrada():
         name = request.form.get('motorista')
         cpf = request.form.get('motorista_cpf')
         telefone = request.form.get('motorista_telefone')
+        placa = (request.form.get('placa') or '').strip() or None
+        modelo = (request.form.get('modelo') or '').strip() or None
+        transportadora = (request.form.get('transportadora') or '').strip() or None
         
         foto_salva_como = None
         
@@ -307,14 +310,15 @@ def entrada():
         if tipo_entrada == 'visitante':
             novo_veiculo = Veiculo(
                 motorista_nome=name, motorista_cpf=cpf, motorista_telefone=telefone,
-                placa=None, modelo=None, transportadora=None, foto_caminho=foto_salva_como,
+                placa=placa, modelo=modelo, transportadora=transportadora,
+                foto_caminho=foto_salva_como,
                 empresa_id=current_user.empresa_id
             )
         else:
             novo_veiculo = Veiculo(
                 motorista_nome=name, motorista_cpf=cpf, motorista_telefone=telefone,
-                placa=request.form.get('placa'), modelo=request.form.get('modelo'),
-                transportadora=request.form.get('transportadora'), foto_caminho=foto_salva_como,
+                placa=placa, modelo=modelo, transportadora=transportadora,
+                foto_caminho=foto_salva_como,
                 empresa_id=current_user.empresa_id
             )
             
