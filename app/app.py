@@ -9,7 +9,8 @@ from datetime import datetime
 from flask import Flask, render_template, request, redirect, url_for, flash, send_file, session, abort
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import func
-from werkzeug.security import generate_password_hash, check_password_hash
+from sqlalchemy.exc import SQLAlchemyError
+from werkzeug.security import check_password_hash
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 import pandas as pd
 
@@ -45,9 +46,26 @@ app.config.update(SESSION_COOKIE_HTTPONLY=True, SESSION_COOKIE_SAMESITE='Lax',
                   MAX_CONTENT_LENGTH=5 * 1024 * 1024)
 ALLOWED_IMAGE_TYPES = {'image/jpeg': '.jpg', 'image/png': '.png', 'image/webp': '.webp'}
 
+def is_valid_image(image_bytes, mime):
+    if mime == 'image/jpeg':
+        return image_bytes.startswith(bytes.fromhex('ffd8ff'))
+    if mime == 'image/png':
+        return image_bytes.startswith(bytes.fromhex('89504e470d0a1a0a'))
+    if mime == 'image/webp':
+        return len(image_bytes) >= 12 and image_bytes[:4] == b'RIFF' and image_bytes[8:12] == b'WEBP'
+    return False
+
 @app.context_processor
 def inject_csrf_token():
     return {'csrf_token': csrf_token}
+
+@app.template_global('company_logo_url')
+def company_logo_url(path):
+    if not path:
+        return None
+    if path.startswith('https://'):
+        return path
+    return url_for('static', filename=path.lstrip('/'))
 
 def csrf_token():
     if '_csrf_token' not in session:
@@ -91,6 +109,9 @@ class Empresa(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     nome_fantasia = db.Column(db.String(100), nullable=False)
     cnpj = db.Column(db.String(18), unique=True, nullable=True)
+    nome_empresa_seguranca = db.Column(db.String(100), nullable=True)
+    logo_empresa_seguranca = db.Column(db.String(500), nullable=True)
+    logo_empresa_portaria = db.Column(db.String(500), nullable=True)
     data_cadastro = db.Column(db.DateTime, default=datetime.now)
 
 class Usuario(db.Model, UserMixin):
@@ -168,7 +189,27 @@ def login():
         
         usuario = Usuario.query.filter(func.lower(Usuario.username) == username).first()
         
-        if usuario and check_password_hash(usuario.senha_hash, password):
+        try:
+            if usuario and usuario.senha_hash.startswith('$2a$'):
+                # O trigger do Supabase gera bcrypt via pgcrypto; compare no PostgreSQL.
+                senha_valida = bool(
+                    db.engine.dialect.name == 'postgresql'
+                    and db.session.query(Usuario.id).filter(
+                        Usuario.id == usuario.id,
+                        func.extensions.crypt(password, Usuario.senha_hash) == Usuario.senha_hash
+                    ).first()
+                )
+            else:
+                # Mantem os hashes Werkzeug antigos e o SQLite local funcionando.
+                senha_valida = bool(usuario and check_password_hash(usuario.senha_hash, password))
+        except (AttributeError, TypeError, ValueError, SQLAlchemyError):
+            # Hash antigo, truncado ou incompatível deve falhar como credencial inválida,
+            # sem derrubar a tela de login.
+            db.session.rollback()
+            app.logger.warning('Hash de senha inválido ou incompatível para um usuário.')
+            senha_valida = False
+
+        if senha_valida:
             session.clear()
             login_user(usuario, remember=False, fresh=True)
             session.permanent = True
@@ -241,8 +282,7 @@ def entrada():
                 if not extension or len(encoded) > 4_500_000:
                     raise ValueError('Imagem inválida ou muito grande.')
                 image_bytes = base64.b64decode(encoded, validate=True)
-                signatures = (bytes.fromhex('ffd8ff'), bytes.fromhex('89504e470d0a1a0a'), b'RIFF')
-                if not image_bytes.startswith(signatures):
+                if not is_valid_image(image_bytes, mime):
                     raise ValueError('Conteúdo de imagem inválido.')
                 filename = f"webcam_{uuid.uuid4().hex}{extension}"
                 with open(os.path.join(app.config['UPLOAD_FOLDER'], filename), 'wb') as image_file:
@@ -257,8 +297,7 @@ def entrada():
                 extension = ALLOWED_IMAGE_TYPES.get(arquivo_foto.mimetype)
                 signature = arquivo_foto.stream.read(12)
                 arquivo_foto.stream.seek(0)
-                signatures = (bytes.fromhex('ffd8ff'), bytes.fromhex('89504e470d0a1a0a'), b'RIFF')
-                if not extension or not signature.startswith(signatures):
+                if not extension or not is_valid_image(signature, arquivo_foto.mimetype):
                     flash('Envie uma foto JPG, PNG ou WEBP válida.', 'danger')
                     return render_template('entrada.html'), 400
                 filename = f"acesso_{uuid.uuid4().hex}{extension}"
@@ -358,8 +397,13 @@ def config_docas():
 def deletar_doca(doca_id):
     doca = Doca.query.filter_by(id=doca_id, empresa_id=current_user.empresa_id).first()
     if doca:
-        db.session.delete(doca)
-        db.session.commit()
+        possui_historico = Movimentacao.query.filter_by(doca_id=doca.id).first() is not None
+        if doca.status != 'Livre' or possui_historico:
+            flash('Esta doca está ocupada ou possui histórico e não pode ser removida.', 'warning')
+        else:
+            db.session.delete(doca)
+            db.session.commit()
+            flash('Doca removida com sucesso.', 'sucesso')
     return redirect(url_for('config_docas'))
 
 @app.route('/exportar')
@@ -375,10 +419,10 @@ def exportar():
     try:
         inicio = datetime.strptime(data_inicio_str, '%Y-%m-%d')
         fim = datetime.strptime(data_fim_str, '%Y-%m-%d').replace(hour=23, minute=59, second=59)
-        if fim < inicio:
+        if fim < inicio or (fim.date() - inicio.date()).days >= 365:
             raise ValueError('Período inválido')
     except ValueError:
-        flash('O período informado é inválido.', 'danger')
+        flash('O período informado é inválido. Use um intervalo de até 365 dias.', 'danger')
         return redirect(url_for('dashboard'))
     
     dados = Movimentacao.query.filter(
@@ -430,6 +474,10 @@ def gerenciamento():
         Movimentacao.empresa_id == current_user.empresa_id,
         func.date(Movimentacao.data_hora_entrada) == hoje
     ).all()
+    ativos_no_momento = Movimentacao.query.filter(
+        Movimentacao.empresa_id == current_user.empresa_id,
+        Movimentacao.status_atual != 'Concluído'
+    ).count()
     
     # Dados para o gráfico de pizza por status
     status_dados = db.session.query(
@@ -441,53 +489,47 @@ def gerenciamento():
     label_status = [d[0] for d in status_dados]
     valores_status = [d[1] for d in status_dados]
 
-    # Calculo em tempo real
-    dados_docas_reais = db.session.query(
-        Doca.numero,
-        func.avg(
-            func.extract('epoch', Movimentacao.data_hora_saida - Movimentacao.data_hora_entrada) / 60
-        )
-    ).join(Doca, Movimentacao.doca_id == Doca.id)\
-     .filter(
+    # Calcula em Python para manter compatibilidade entre PostgreSQL e SQLite.
+    registros_com_doca = db.session.query(
+        Doca.numero, Movimentacao.data_hora_entrada, Movimentacao.data_hora_saida
+    ).join(Doca, Movimentacao.doca_id == Doca.id).filter(
         Movimentacao.empresa_id == current_user.empresa_id,
-        Movimentacao.data_hora_entrada != None,
-        Movimentacao.data_hora_saida != None,
-        Movimentacao.doca_id != None
-    ).group_by(Doca.numero).all()
+        Movimentacao.data_hora_entrada.isnot(None),
+        Movimentacao.data_hora_saida.isnot(None)
+    ).all()
+
+    tempos_por_doca = {}
+    for numero, entrada, saida in registros_com_doca:
+        minutos = (saida - entrada).total_seconds() / 60
+        if minutos >= 0:
+            total, quantidade = tempos_por_doca.get(numero, (0.0, 0))
+            tempos_por_doca[numero] = (total + minutos, quantidade + 1)
 
     # Mapeamento e formatação das legendas textuais
-    if dados_docas_reais:
-        labels_docas = [str(d[0]) for d in dados_docas_reais]
-        media_tempo_doca = [round(float(d[1]), 1) if d[1] else 0.0 for d in dados_docas_reais]
+    if tempos_por_doca:
+        labels_docas = sorted(str(numero) for numero in tempos_por_doca)
+        media_tempo_doca = [
+            round(tempos_por_doca[numero][0] / tempos_por_doca[numero][1], 1)
+            for numero in sorted(tempos_por_doca)
+        ]
     else:
         labels_docas = ["Sem movimentações"]
         media_tempo_doca = [0]
 
     return render_template('gerenciamento.html',
                             movimentacoes=movimentacoes_hoje, 
+                            ativos_no_momento=ativos_no_momento,
                             label_status=label_status, 
                             valores_status=valores_status, 
                             labels_docas=labels_docas, 
                             media_tempo_doca=media_tempo_doca)
  
-# INICIALIZAÇÃO SEGURA DO BANCO DE DADOS
-
-with app.app_context():
-    db.create_all()
-    
-    if Empresa.query.count() == 0:
-        empresa_demo = Empresa(nome_fantasia="Logística Demo S/A", cnpj="00.000.000/0001-00")
-        db.session.add(empresa_demo)
-        db.session.flush() 
-        
-        senha_criptografada = generate_password_hash('admin')
-        usuario_admin = Usuario(username='admin', senha_hash=senha_criptografada, empresa_id=empresa_demo.id)
-        db.session.add(usuario_admin)
-        
-        db.session.add(Doca(numero="Doca 01", status='Livre', empresa_id=empresa_demo.id))
-        db.session.add(Doca(numero="Doca 02", status='Livre', empresa_id=empresa_demo.id))
-        
-        db.session.commit()
+# A criação automática é opcional e limitada ao SQLite local. O schema Supabase
+# deve ser provisionado separadamente, sem alterações durante a inicialização.
+if (app.config['SQLALCHEMY_DATABASE_URI'].startswith('sqlite:///')
+        and os.getenv('AUTO_CREATE_DB', 'false').lower() == 'true'):
+    with app.app_context():
+        db.create_all()
 
 if __name__ == '__main__':
     app.run(debug=os.getenv('FLASK_DEBUG', 'false').lower() == 'true')

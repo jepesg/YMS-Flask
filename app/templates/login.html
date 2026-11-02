@@ -8,6 +8,11 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='assets/global.css') }}">
 </head>
 <body class="login-body">
+    <div class="page-loader" id="page-loader" role="status" aria-live="polite" aria-label="Autenticando" aria-busy="true" hidden>
+        <div class="loader-scene" aria-hidden="true"><i class="fas fa-truck-fast loader-truck"></i><span class="loader-light"></span></div>
+        <div class="loader-dots" aria-hidden="true"><span></span><span></span><span></span></div>
+        <p>Validando seu acesso...</p>
+    </div>
 
     <div class="login-box">
         <div style="color: var(--cor-icones-nav); font-size: 32px; margin-bottom: 5px;"><i class="fas fa-boxes-stacked"></i></div>
@@ -40,5 +45,6 @@
         </form>
     </div>
 
+    <script src="{{ url_for('static', filename='assets/js/loading.js') }}" defer></script>
 </body>
 </html>

@@ -1,4 +1,51 @@
+# Segredos e configuracao por ambiente
 .env
+.env.*
+!.env.example
+!.env.sample
+
+# Ferramentas locais fora do app/deploy
+local_tools/
+scripts/
+/inserir_empresa.sql
+/sql/insert_empresa_usuario.sql
+
+# Dados locais e arquivos enviados por usuarios
+DB/*.db
+DB/*.db-*
+DB/*.sqlite
+DB/*.sqlite3
+DB/*.sqlite-*
+app/static/uploads/
+instance/
+exports/
+reports/
+
+# Python
 __pycache__/
-*.pyc
+*.py[cod]
+*$py.class
 .venv/
+venv/
+env/
+ENV/
+build/
+dist/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Dependencias e caches de ferramentas
+node_modules/
+.cache/
+
+# Preferencias locais de editor e sistema operacional
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+*.log
